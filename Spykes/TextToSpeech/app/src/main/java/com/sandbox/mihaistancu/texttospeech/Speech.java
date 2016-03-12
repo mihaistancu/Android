@@ -11,7 +11,7 @@ public class Speech implements OnInitListener
 {
     public int CHECK_CODE = 0;
     private Activity activity;
-    private TextToSpeech myTTS;
+    private TextToSpeech tts;
 
     public Speech(Activity activity)
     {
@@ -21,7 +21,7 @@ public class Speech implements OnInitListener
 
     public void speak(String speech)
     {
-        myTTS.speak(speech, TextToSpeech.QUEUE_FLUSH, null);
+        tts.speak(speech, TextToSpeech.QUEUE_FLUSH, null);
     }
 
     private void prepareInitialization()
@@ -35,7 +35,7 @@ public class Speech implements OnInitListener
     {
         if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS)
         {
-            myTTS = new TextToSpeech(activity, this);
+            tts = new TextToSpeech(activity, this);
         }
         else
         {
@@ -49,14 +49,20 @@ public class Speech implements OnInitListener
     {
         if (initStatus == TextToSpeech.SUCCESS)
         {
-            if (myTTS.isLanguageAvailable(Locale.US) == TextToSpeech.LANG_AVAILABLE)
+            if (tts.isLanguageAvailable(Locale.US) == TextToSpeech.LANG_AVAILABLE)
             {
-                myTTS.setLanguage(Locale.US);
+                tts.setLanguage(Locale.US);
             }
         }
         else if (initStatus == TextToSpeech.ERROR)
         {
             Toast.makeText(activity, "Sorry! Text to Speech failed...", Toast.LENGTH_LONG).show();
         }
+    }
+
+    void shutDown()
+    {
+        tts.stop();
+        tts.shutdown();
     }
 }

@@ -38,4 +38,10 @@ public class MainActivity extends Activity implements OnClickListener
             speech.initialize(resultCode);
         }
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        speech.shutDown();
+    }
 }
