@@ -1,14 +1,11 @@
 package inovation.lab.cloudvision;
 
-import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -19,23 +16,16 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import java.io.File;
 import java.io.IOException;
-
 import sample.google.com.cloudvision.R;
 
 public class MainActivity extends AppCompatActivity {
-    public static final String FILE_NAME = "temp.jpg";
 
-    private static final String TAG = MainActivity.class.getSimpleName();
-    private static final int GALLERY_IMAGE_REQUEST = 1;
-    public static final int CAMERA_PERMISSIONS_REQUEST = 2;
-    public static final int CAMERA_IMAGE_REQUEST = 3;
-    private ImageView mMainImage;
+    private ImageView mainImage;
+    private TextView imageDetails;
 
     private GoogleCloudVision visionApi;
     private ColorToSound colorToSound;
-    private TextView mImageDetails;
     private ImageManager imageManager;
 
     @Override
@@ -47,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
 
         visionApi = new GoogleCloudVision();
         colorToSound = new ColorToSound(this);
-        imageManager = new ImageManager();
+        imageManager = new ImageManager(this);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -59,58 +49,44 @@ public class MainActivity extends AppCompatActivity {
                         .setPositiveButton(R.string.dialog_select_gallery, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                startGalleryChooser();
+                                imageManager.startGalleryChooser();
                             }
                         })
                         .setNegativeButton(R.string.dialog_select_camera, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                startCamera();
+                                imageManager.startCamera();
                             }
                         });
                 builder.create().show();
             }
         });
 
-        mImageDetails = (TextView) findViewById(R.id.image_details);
-        mMainImage = (ImageView) findViewById(R.id.main_image);
-    }
-
-    public void startGalleryChooser() {
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent, "Select a photo"), GALLERY_IMAGE_REQUEST);
-    }
-
-    public void startCamera() {
-        if (PermissionUtils.requestPermission(this, CAMERA_PERMISSIONS_REQUEST, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA)) {
-            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(getCameraFile()));
-            startActivityForResult(intent, CAMERA_IMAGE_REQUEST);
-        }
-    }
-
-    public File getCameraFile() {
-        File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-        return new File(dir, FILE_NAME);
+        imageDetails = (TextView) findViewById(R.id.image_details);
+        mainImage = (ImageView) findViewById(R.id.main_image);
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == GALLERY_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
-            uploadImage(data.getData());
-        } else if (requestCode == CAMERA_IMAGE_REQUEST && resultCode == RESULT_OK) {
-            uploadImage(Uri.fromFile(getCameraFile()));
+        if (resultCode != RESULT_OK) return;
+
+        try
+        {
+            Bitmap bitmap = imageManager.ReadImage(requestCode, data);
+            analyze(bitmap);
+        } catch (IOException exception)
+        {
+            Log.d("main", "Image picking failed because " + exception.getMessage());
+            Toast.makeText(this, R.string.image_picker_error, Toast.LENGTH_LONG).show();
         }
     }
 
     private void callCloudVision(final Bitmap bitmap) throws IOException
     {
-        mImageDetails.setText(R.string.loading_message);
+        imageDetails.setText(R.string.loading_message);
 
         new AsyncTask<Object, Void, String>() {
             @Override
@@ -121,55 +97,42 @@ public class MainActivity extends AppCompatActivity {
 
             protected void onPostExecute(String result)
             {
-                mImageDetails.setText(result);
+                imageDetails.setText(result);
             }
         }.execute();
     }
 
-    public void uploadImage(Uri uri) {
-        if (uri != null) {
-            try {
-                // scale the image to 800px to save on bandwidth
-                final Bitmap bitmap = imageManager.scaleBitmapDown(MediaStore.Images.Media.getBitmap(getContentResolver(), uri), 1200);
+    public void analyze(final Bitmap bitmap) throws IOException
+    {
+        callCloudVision(bitmap);
+        mainImage.setImageBitmap(bitmap);
 
-                callCloudVision(bitmap);
-                mMainImage.setImageBitmap(bitmap);
+        mainImage.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                int action = event.getAction();
+                int x = (int) event.getX();
+                int y = (int) event.getY();
 
-                mMainImage.setOnTouchListener(new View.OnTouchListener(){
-                    @Override
-                    public boolean onTouch(View v, MotionEvent event) {
-                        int action = event.getAction();
-                        int x = (int) event.getX();
-                        int y = (int) event.getY();
+                switch (action) {
+                    case MotionEvent.ACTION_UP:
+                        int touchedRGB = imageManager.getProjectedColor((ImageView) v, bitmap, x, y);
+                        colorToSound.play(touchedRGB);
+                        break;
+                    default:
+                        break;
+                }
 
-                        switch(action)
-                        {
-                            case MotionEvent.ACTION_UP :
-                                int touchedRGB = imageManager.getProjectedColor((ImageView) v, bitmap, x, y);
-                                colorToSound.play(touchedRGB);
-                                break;
-                            default:
-                                break;
-                        }
-
-                        return true;
-                    }});
-
-            } catch (IOException e) {
-                Log.d(TAG, "Image picking failed because " + e.getMessage());
-                Toast.makeText(this, R.string.image_picker_error, Toast.LENGTH_LONG).show();
+                return true;
             }
-        } else {
-            Log.d(TAG, "Image picker gave us a null image.");
-            Toast.makeText(this, R.string.image_picker_error, Toast.LENGTH_LONG).show();
-        }
+        });
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (PermissionUtils.permissionGranted(requestCode, CAMERA_PERMISSIONS_REQUEST, grantResults)) {
-            startCamera();
+        if (PermissionUtils.permissionGranted(requestCode, ImageManager.CAMERA_PERMISSIONS_REQUEST, grantResults)) {
+            imageManager.startCamera();
         }
     }
 }
