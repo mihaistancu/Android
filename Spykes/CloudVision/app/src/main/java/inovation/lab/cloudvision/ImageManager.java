@@ -2,14 +2,18 @@ package inovation.lab.cloudvision;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.v7.app.AlertDialog;
 import android.widget.ImageView;
 import java.io.File;
 import java.io.IOException;
+
+import sample.google.com.cloudvision.R;
 
 public class ImageManager
 {
@@ -23,6 +27,26 @@ public class ImageManager
     public ImageManager(Activity activity)
     {
         this.activity = activity;
+    }
+
+    public void selectImage()
+    {
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        builder
+                .setMessage(R.string.dialog_select_prompt)
+                .setPositiveButton(R.string.dialog_select_gallery, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        startGalleryChooser();
+                    }
+                })
+                .setNegativeButton(R.string.dialog_select_camera, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        startCamera();
+                    }
+                });
+        builder.create().show();
     }
 
     public void startGalleryChooser() {
