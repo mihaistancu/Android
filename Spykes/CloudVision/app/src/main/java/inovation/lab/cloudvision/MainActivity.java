@@ -21,6 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.graphics.Color;
 import android.R.color;
+import android.media.MediaPlayer;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
@@ -337,12 +338,17 @@ public class MainActivity extends AppCompatActivity {
         }
 
         try {
-            MediaPlayer mediaPlayer = new MediaPlayer();
+            final MediaPlayer mediaPlayer = new MediaPlayer();
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mediaPlayer.setDataSource(getApplicationContext(), myUri);
             mediaPlayer.setVolume(volume, volume);
             mediaPlayer.prepare();
             mediaPlayer.start();
+            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                public void onCompletion(MediaPlayer mp) {
+                    mediaPlayer.release();
+                } ;
+            });
         } catch (Exception e) {
             Log.d(TAG, "BUBA!!!");
         }
