@@ -19,12 +19,8 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.graphics.Color;
-import android.R.color;
-import android.media.MediaPlayer;
 import java.io.File;
 import java.io.IOException;
-import android.media.AudioManager;
 import sample.google.com.cloudvision.R;
 
 public class MainActivity extends AppCompatActivity {
@@ -36,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int CAMERA_IMAGE_REQUEST = 3;
 
     GoogleCloudVision api;
+    ColorToSound colorToSound;
     private TextView mImageDetails;
     private ImageView mMainImage;
 
@@ -45,7 +42,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
         api = new GoogleCloudVision();
+        colorToSound = new ColorToSound(this);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -97,8 +96,7 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent, "Select a photo"),
-                GALLERY_IMAGE_REQUEST);
+        startActivityForResult(Intent.createChooser(intent, "Select a photo"), GALLERY_IMAGE_REQUEST);
     }
 
     public void startCamera() {
@@ -173,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
                             case MotionEvent.ACTION_UP :
                                 int touchedRGB = getProjectedColor((ImageView) v, bitmap, x, y);
                                 //int touchedRGB = bitmap.getPixel(x, y);
-                                ColorToSOund(touchedRGB);
+                                colorToSound.play(touchedRGB);
                                 break;
                             default:
                                 break;
@@ -193,88 +191,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void ColorToSOund(int color) {
-        int red = Color.red(color);
-        int blue = Color.blue(color);
-        int green = Color.green(color);
-
-        Log.d("R", Integer.toString(red));
-        Log.d("G", Integer.toString(green));
-        Log.d("B", Integer.toString(blue));
-
-        if (blue == 255 && red == 255 && green == 255) {
-            // play white
-            PlayColor("white", 1);
-        } else if (blue == 0 && red == 0 && green == 0) {
-            // play black
-            PlayColor("black", 1);
-        } else {
-            if (blue > 128 && red > 128 && green > 128) {
-                // play white half volume
-                PlayColor("white", 0.5f);
-            }
-
-            if (blue < 128 && red < 128 && green < 128) {
-                // play black half volume
-                PlayColor("black", 0.5f);
-            }
-
-            // set volume color/255
-            // play red
-            PlayColor("red", (float) red / 255);
-            // play green
-            PlayColor("green", (float) green / 255);
-            // play blue
-            PlayColor("blue", (float) blue / 255);
-        }
-    }
-
-    private void PlayColor(String color, float volume) {
-        Uri myUri = null;
-
-        switch (color) {
-            case "red":
-                myUri = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.red); // initialize Uri here
-                break;
-            case "green":
-                myUri = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.green); // initialize Uri here
-                break;
-            case "blue":
-                myUri = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.blue); // initialize Uri here
-                break;
-            case "white":
-                myUri = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.white); // initialize Uri here
-                break;
-            case "black":
-                myUri = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.black); // initialize Uri here
-                break;
-        }
-
-        try {
-            final MediaPlayer mediaPlayer = new MediaPlayer();
-            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            mediaPlayer.setDataSource(getApplicationContext(), myUri);
-            mediaPlayer.setVolume(volume, volume);
-            mediaPlayer.prepare();
-            mediaPlayer.start();
-            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                public void onCompletion(MediaPlayer mp) {
-                    mediaPlayer.release();
-                } ;
-            });
-        } catch (Exception e) {
-            Log.d(TAG, "BUBA!!!");
-        }
-    }
-
-    /*
-  * Project position on ImageView to position on Bitmap
-  * return the color on the position
-  */
     private int getProjectedColor(ImageView iv, Bitmap bm, int x, int y){
         if(x<0 || y<0 || x > iv.getWidth() || y > iv.getHeight()){
             //outside ImageView
-            return color.background_light;
+            return android.R.color.background_light;
         }else{
             int projectedX = (int)((double)x * ((double)bm.getWidth()/(double)iv.getWidth()));
             int projectedY = (int)((double)y * ((double)bm.getHeight()/(double)iv.getHeight()));
