@@ -21,6 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import java.io.File;
 import java.io.IOException;
+
 import sample.google.com.cloudvision.R;
 
 public class MainActivity extends AppCompatActivity {
@@ -30,11 +31,12 @@ public class MainActivity extends AppCompatActivity {
     private static final int GALLERY_IMAGE_REQUEST = 1;
     public static final int CAMERA_PERMISSIONS_REQUEST = 2;
     public static final int CAMERA_IMAGE_REQUEST = 3;
-
-    GoogleCloudVision api;
-    ColorToSound colorToSound;
-    private TextView mImageDetails;
     private ImageView mMainImage;
+
+    private GoogleCloudVision visionApi;
+    private ColorToSound colorToSound;
+    private TextView mImageDetails;
+    private ImageManager imageManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,8 +45,9 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        api = new GoogleCloudVision();
+        visionApi = new GoogleCloudVision();
         colorToSound = new ColorToSound(this);
+        imageManager = new ImageManager();
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -71,25 +74,6 @@ public class MainActivity extends AppCompatActivity {
 
         mImageDetails = (TextView) findViewById(R.id.image_details);
         mMainImage = (ImageView) findViewById(R.id.main_image);
-    }
-
-    private void callCloudVision(final Bitmap bitmap) throws IOException {
-        // Switch text to loading
-        mImageDetails.setText(R.string.loading_message);
-
-        // Do the real work in an async task, because we need to use the network anyway
-        new AsyncTask<Object, Void, String>() {
-            @Override
-            protected String doInBackground(Object... params)
-            {
-                return api.Analyze(bitmap);
-            }
-
-            protected void onPostExecute(String result)
-            {
-                mImageDetails.setText(result);
-            }
-        }.execute();
     }
 
     public void startGalleryChooser() {
@@ -124,38 +108,29 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (PermissionUtils.permissionGranted(requestCode, CAMERA_PERMISSIONS_REQUEST, grantResults)) {
-            startCamera();
-        }
-    }
+    private void callCloudVision(final Bitmap bitmap) throws IOException
+    {
+        mImageDetails.setText(R.string.loading_message);
 
-    public Bitmap scaleBitmapDown(Bitmap bitmap, int maxDimension) {
-        int originalWidth = bitmap.getWidth();
-        int originalHeight = bitmap.getHeight();
-        int resizedWidth = maxDimension;
-        int resizedHeight = maxDimension;
+        new AsyncTask<Object, Void, String>() {
+            @Override
+            protected String doInBackground(Object... params)
+            {
+                return visionApi.Analyze(bitmap);
+            }
 
-        if (originalHeight > originalWidth) {
-            resizedHeight = maxDimension;
-            resizedWidth = (int) (resizedHeight * (float) originalWidth / (float) originalHeight);
-        } else if (originalWidth > originalHeight) {
-            resizedWidth = maxDimension;
-            resizedHeight = (int) (resizedWidth * (float) originalHeight / (float) originalWidth);
-        } else if (originalHeight == originalWidth) {
-            resizedHeight = maxDimension;
-            resizedWidth = maxDimension;
-        }
-        return Bitmap.createScaledBitmap(bitmap, resizedWidth, resizedHeight, false);
+            protected void onPostExecute(String result)
+            {
+                mImageDetails.setText(result);
+            }
+        }.execute();
     }
 
     public void uploadImage(Uri uri) {
         if (uri != null) {
             try {
                 // scale the image to 800px to save on bandwidth
-                final Bitmap bitmap = scaleBitmapDown(MediaStore.Images.Media.getBitmap(getContentResolver(), uri), 1200);
+                final Bitmap bitmap = imageManager.scaleBitmapDown(MediaStore.Images.Media.getBitmap(getContentResolver(), uri), 1200);
 
                 callCloudVision(bitmap);
                 mMainImage.setImageBitmap(bitmap);
@@ -167,17 +142,16 @@ public class MainActivity extends AppCompatActivity {
                         int x = (int) event.getX();
                         int y = (int) event.getY();
 
-                        switch(action){
+                        switch(action)
+                        {
                             case MotionEvent.ACTION_UP :
-                                int touchedRGB = getProjectedColor((ImageView) v, bitmap, x, y);
-                                //int touchedRGB = bitmap.getPixel(x, y);
+                                int touchedRGB = imageManager.getProjectedColor((ImageView) v, bitmap, x, y);
                                 colorToSound.play(touchedRGB);
                                 break;
                             default:
                                 break;
                         }
 
-                        //Return 'true' to indicate that the event have been consumed.
                         return true;
                     }});
 
@@ -191,15 +165,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private int getProjectedColor(ImageView iv, Bitmap bm, int x, int y){
-        if(x<0 || y<0 || x > iv.getWidth() || y > iv.getHeight()){
-            //outside ImageView
-            return android.R.color.background_light;
-        }else{
-            int projectedX = (int)((double)x * ((double)bm.getWidth()/(double)iv.getWidth()));
-            int projectedY = (int)((double)y * ((double)bm.getHeight()/(double)iv.getHeight()));
-
-            return bm.getPixel(projectedX, projectedY);
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (PermissionUtils.permissionGranted(requestCode, CAMERA_PERMISSIONS_REQUEST, grantResults)) {
+            startCamera();
         }
     }
 }
