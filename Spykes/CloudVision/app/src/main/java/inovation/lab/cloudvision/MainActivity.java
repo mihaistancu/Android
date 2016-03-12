@@ -1,4 +1,4 @@
-package sample.google.com.cloudvision;
+package inovation.lab.cloudvision;
 
 import android.Manifest;
 import android.content.DialogInterface;
@@ -18,6 +18,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import  android.graphics.Color;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
@@ -38,6 +39,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import android.media.MediaPlayer;
+
+import sample.google.com.cloudvision.R;
 
 public class MainActivity extends AppCompatActivity {
     private static final String CLOUD_VISION_API_KEY = "AIzaSyBoyen2uL0vc4sf8viYAI78cjHwrgqrmWg";
@@ -83,6 +88,12 @@ public class MainActivity extends AppCompatActivity {
 
         mImageDetails = (TextView) findViewById(R.id.image_details);
         mMainImage = (ImageView) findViewById(R.id.main_image);
+
+        /*mMainImage.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Log.v(TAG, " click");
+            }
+        });*/
     }
 
     public void startGalleryChooser() {
@@ -131,10 +142,29 @@ public class MainActivity extends AppCompatActivity {
         if (uri != null) {
             try {
                 // scale the image to 800px to save on bandwidth
-                Bitmap bitmap = scaleBitmapDown(MediaStore.Images.Media.getBitmap(getContentResolver(), uri), 1200);
+                final Bitmap bitmap = scaleBitmapDown(MediaStore.Images.Media.getBitmap(getContentResolver(), uri), 1200);
 
                 callCloudVision(bitmap);
                 mMainImage.setImageBitmap(bitmap);
+
+                mMainImage.setOnClickListener(new View.OnClickListener() {
+                    public void onClick(View view) {
+                        int[] values = new int[2];
+                        view.getLocationOnScreen(values);
+                        Log.d("X & Y", values[0] + " " + values[1]);
+
+                        int touchedRGB = bitmap.getPixel(values[0], values[1]);
+
+                        int red = Color.red(touchedRGB);
+                        int blue = Color.blue(touchedRGB);
+                        int green = Color.green(touchedRGB);
+
+                        Log.d("R", Integer.toString(red));
+                        Log.d("G", Integer.toString(green));
+                        Log.d("B", Integer.toString(blue));
+
+                    }
+                });
 
             } catch (IOException e) {
                 Log.d(TAG, "Image picking failed because " + e.getMessage());

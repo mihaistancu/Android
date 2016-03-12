@@ -1,4 +1,4 @@
-package sample.google.com.cloudvision;
+package inovation.lab.cloudvision;
 
 import android.app.Activity;
 import android.content.pm.PackageManager;
