@@ -18,8 +18,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import  android.graphics.Color;
-import android.content.Context;
+import android.graphics.Color;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
@@ -45,7 +44,6 @@ import android.media.MediaPlayer;
 import android.media.AudioManager;
 
 import sample.google.com.cloudvision.R;
-
 
 public class MainActivity extends AppCompatActivity {
     private static final String CLOUD_VISION_API_KEY = "AIzaSyBoyen2uL0vc4sf8viYAI78cjHwrgqrmWg";
@@ -91,12 +89,6 @@ public class MainActivity extends AppCompatActivity {
 
         mImageDetails = (TextView) findViewById(R.id.image_details);
         mMainImage = (ImageView) findViewById(R.id.main_image);
-
-        /*mMainImage.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                Log.v(TAG, " click");
-            }
-        });*/
     }
 
     public void startGalleryChooser() {
@@ -127,8 +119,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (requestCode == GALLERY_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
             uploadImage(data.getData());
-        }
-        else if(requestCode == CAMERA_IMAGE_REQUEST && resultCode == RESULT_OK) {
+        } else if (requestCode == CAMERA_IMAGE_REQUEST && resultCode == RESULT_OK) {
             uploadImage(Uri.fromFile(getCameraFile()));
         }
     }
@@ -242,7 +233,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public Bitmap scaleBitmapDown(Bitmap bitmap, int maxDimension) {
-
         int originalWidth = bitmap.getWidth();
         int originalHeight = bitmap.getHeight();
         int resizedWidth = maxDimension;
@@ -277,7 +267,7 @@ public class MainActivity extends AppCompatActivity {
         return message;
     }
 
-    private void ColorToSOund(int color){
+    private void ColorToSOund(int color) {
         int red = Color.red(color);
         int blue = Color.blue(color);
         int green = Color.green(color);
@@ -286,37 +276,37 @@ public class MainActivity extends AppCompatActivity {
         Log.d("G", Integer.toString(green));
         Log.d("B", Integer.toString(blue));
 
-        if(blue == 255 && red == 255 && green == 255){
+        if (blue == 255 && red == 255 && green == 255) {
             // play white
             PlayColor("white", 1);
-        }else if(blue == 0 && red == 0 && green == 0){
+        } else if (blue == 0 && red == 0 && green == 0) {
             // play black
             PlayColor("black", 1);
-        }else{
-            if(blue > 128 && red > 128 && green > 128){
+        } else {
+            if (blue > 128 && red > 128 && green > 128) {
                 // play white half volume
                 PlayColor("white", 0.5f);
             }
 
-            if(blue < 128 && red < 128 && green < 128){
+            if (blue < 128 && red < 128 && green < 128) {
                 // play black half volume
                 PlayColor("black", 0.5f);
             }
 
             // set volume color/255
             // play red
-            PlayColor("red", (float)red / 255);
+            PlayColor("red", (float) red / 255);
             // play green
-            PlayColor("green", (float)green / 255);
+            PlayColor("green", (float) green / 255);
             // play blue
-            PlayColor("blue", (float)blue / 255);
+            PlayColor("blue", (float) blue / 255);
         }
     }
 
-    private void PlayColor(String color, float volume){
+    private void PlayColor(String color, float volume) {
         Uri myUri = null;
 
-        switch (color){
+        switch (color) {
             case "red":
                 myUri = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.red); // initialize Uri here
                 break;
@@ -338,7 +328,7 @@ public class MainActivity extends AppCompatActivity {
             MediaPlayer mediaPlayer = new MediaPlayer();
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mediaPlayer.setDataSource(getApplicationContext(), myUri);
-            mediaPlayer.setVolume(volume,volume);
+            mediaPlayer.setVolume(volume, volume);
             mediaPlayer.prepare();
             mediaPlayer.start();
         } catch (Exception e) {
