@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private GoogleCloudVision visionApi;
     private ColorToSound colorToSound;
     private ImageManager imageManager;
+    private Speech speech;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
         visionApi = new GoogleCloudVision();
         colorToSound = new ColorToSound(this);
         imageManager = new ImageManager(this);
+        speech = new Speech(this);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -71,6 +73,12 @@ public class MainActivity extends AppCompatActivity {
     {
         super.onActivityResult(requestCode, resultCode, data);
 
+        if (requestCode == speech.CHECK_CODE)
+        {
+            speech.initialize(resultCode);
+            return;
+        }
+
         if (resultCode != RESULT_OK) return;
 
         try
@@ -97,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
 
             protected void onPostExecute(String result)
             {
+                speech.speak(result);
                 imageDetails.setText(result);
             }
         }.execute();
@@ -134,5 +143,11 @@ public class MainActivity extends AppCompatActivity {
         if (PermissionUtils.permissionGranted(requestCode, ImageManager.CAMERA_PERMISSIONS_REQUEST, grantResults)) {
             imageManager.startCamera();
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        speech.shutDown();
     }
 }
