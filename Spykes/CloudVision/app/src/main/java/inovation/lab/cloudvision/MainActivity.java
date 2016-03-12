@@ -14,11 +14,13 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.graphics.Color;
+import android.R.color;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
@@ -141,16 +143,26 @@ public class MainActivity extends AppCompatActivity {
                 callCloudVision(bitmap);
                 mMainImage.setImageBitmap(bitmap);
 
-                mMainImage.setOnClickListener(new View.OnClickListener() {
-                    public void onClick(View view) {
-                        int[] values = new int[2];
-                        view.getLocationOnScreen(values);
-                        Log.d("X & Y", values[0] + " " + values[1]);
+                mMainImage.setOnTouchListener(new View.OnTouchListener(){
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        int action = event.getAction();
+                        int x = (int) event.getX();
+                        int y = (int) event.getY();
 
-                        int touchedRGB = bitmap.getPixel(values[0], values[1]);
-                        ColorToSOund(touchedRGB);
-                    }
-                });
+                        switch(action){
+                            case MotionEvent.ACTION_UP :
+                                int touchedRGB = getProjectedColor((ImageView) v, bitmap, x, y);
+                                //int touchedRGB = bitmap.getPixel(x, y);
+                                ColorToSOund(touchedRGB);
+                                break;
+                            default:
+                                break;
+                        }
+
+                        //Return 'true' to indicate that the event have been consumed.
+                        return true;
+                    }});
 
             } catch (IOException e) {
                 Log.d(TAG, "Image picking failed because " + e.getMessage());
@@ -335,4 +347,21 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "BUBA!!!");
         }
     }
+
+    /*
+  * Project position on ImageView to position on Bitmap
+  * return the color on the position
+  */
+    private int getProjectedColor(ImageView iv, Bitmap bm, int x, int y){
+        if(x<0 || y<0 || x > iv.getWidth() || y > iv.getHeight()){
+            //outside ImageView
+            return color.background_light;
+        }else{
+            int projectedX = (int)((double)x * ((double)bm.getWidth()/(double)iv.getWidth()));
+            int projectedY = (int)((double)y * ((double)bm.getHeight()/(double)iv.getHeight()));
+
+            return bm.getPixel(projectedX, projectedY);
+        }
+    }
+
 }
