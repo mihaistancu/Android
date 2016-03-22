@@ -14,6 +14,7 @@ import com.google.api.services.vision.v1.model.AnnotateImageRequest;
 import com.google.api.services.vision.v1.model.BatchAnnotateImagesRequest;
 import com.google.api.services.vision.v1.model.BatchAnnotateImagesResponse;
 import com.google.api.services.vision.v1.model.EntityAnnotation;
+import com.google.api.services.vision.v1.model.FaceAnnotation;
 import com.google.api.services.vision.v1.model.Feature;
 import com.google.api.services.vision.v1.model.Image;
 
@@ -22,13 +23,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GoogleCloudVision
-{
+public class GoogleCloudVision {
     private static final String CLOUD_VISION_API_KEY = "AIzaSyBoyen2uL0vc4sf8viYAI78cjHwrgqrmWg";
     private static String TAG = "api";
 
-    public String Analyze(final Bitmap bitmap)
-    {
+    public String Analyze(final Bitmap bitmap) {
         try {
             HttpTransport httpTransport = AndroidHttp.newCompatibleTransport();
             JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
@@ -59,8 +58,12 @@ public class GoogleCloudVision
                 annotateImageRequest.setFeatures(new ArrayList<Feature>() {{
                     Feature labelDetection = new Feature();
                     labelDetection.setType("LABEL_DETECTION");
-                    labelDetection.setMaxResults(3);
+                    labelDetection.setMaxResults(10);
                     add(labelDetection);
+
+                    Feature faceDetection = new Feature();
+                    faceDetection.setType("FACE_DETECTION");
+                    add(faceDetection);
                 }});
 
                 // Add the list of one thing to the request
@@ -91,11 +94,25 @@ public class GoogleCloudVision
         List<EntityAnnotation> labels = response.getResponses().get(0).getLabelAnnotations();
         if (labels != null) {
             for (EntityAnnotation label : labels) {
+                message += label.getScore();
+                message += " ";
                 message += label.getDescription();
                 message += "\n";
             }
         } else {
             message += "nothing";
+        }
+
+        List<FaceAnnotation> faces = response.getResponses().get(0).getFaceAnnotations();
+        if(faces!=null){
+            for(FaceAnnotation face: faces){
+                message += face.getJoyLikelihood();
+                message += " ";
+                message += face.getAngerLikelihood();
+                message += " ";
+                message += face.getSorrowLikelihood();
+                message += "\n";
+            }
         }
 
         return message;

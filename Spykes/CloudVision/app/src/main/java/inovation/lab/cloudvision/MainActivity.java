@@ -14,7 +14,9 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import java.io.IOException;
+
 import sample.google.com.cloudvision.R;
 
 public class MainActivity extends AppCompatActivity {
@@ -42,8 +44,7 @@ public class MainActivity extends AppCompatActivity {
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view)
-            {
+            public void onClick(View view) {
                 imageManager.selectImage();
             }
         });
@@ -53,50 +54,42 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data)
-    {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == speech.CHECK_CODE)
-        {
+        if (requestCode == speech.CHECK_CODE) {
             speech.initialize(resultCode);
             return;
         }
 
         if (resultCode != RESULT_OK) return;
 
-        try
-        {
+        try {
             Bitmap bitmap = imageManager.ReadImage(requestCode, data);
             analyze(bitmap);
-        } catch (IOException exception)
-        {
+        } catch (IOException exception) {
             Log.d("main", "Image picking failed because " + exception.getMessage());
             Toast.makeText(this, R.string.image_picker_error, Toast.LENGTH_LONG).show();
         }
     }
 
-    private void callCloudVision(final Bitmap bitmap) throws IOException
-    {
+    private void callCloudVision(final Bitmap bitmap) throws IOException {
         imageDetails.setText(R.string.loading_message);
 
         new AsyncTask<Object, Void, String>() {
             @Override
-            protected String doInBackground(Object... params)
-            {
+            protected String doInBackground(Object... params) {
                 return visionApi.Analyze(bitmap);
             }
 
-            protected void onPostExecute(String result)
-            {
+            protected void onPostExecute(String result) {
                 speech.speak(result);
                 imageDetails.setText(result);
             }
         }.execute();
     }
 
-    public void analyze(final Bitmap bitmap) throws IOException
-    {
+    public void analyze(final Bitmap bitmap) throws IOException {
         callCloudVision(bitmap);
         mainImage.setImageBitmap(bitmap);
 

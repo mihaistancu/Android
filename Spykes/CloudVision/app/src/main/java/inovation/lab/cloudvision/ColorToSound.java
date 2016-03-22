@@ -6,14 +6,13 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.util.Log;
+
 import sample.google.com.cloudvision.R;
 
-public class ColorToSound
-{
+public class ColorToSound {
     Context context;
 
-    ColorToSound(Context context)
-    {
+    ColorToSound(Context context) {
         this.context = context;
     }
 
@@ -84,7 +83,9 @@ public class ColorToSound
             mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 public void onCompletion(MediaPlayer mp) {
                     mediaPlayer.release();
-                } ;
+                }
+
+                ;
             });
         } catch (Exception e) {
             Log.d("color2Sound", "BUBA!!!");

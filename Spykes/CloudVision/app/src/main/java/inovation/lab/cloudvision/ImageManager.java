@@ -10,13 +10,13 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AlertDialog;
 import android.widget.ImageView;
+
 import java.io.File;
 import java.io.IOException;
 
 import sample.google.com.cloudvision.R;
 
-public class ImageManager
-{
+public class ImageManager {
     public static final String FILE_NAME = "temp.jpg";
     public static final int GALLERY_IMAGE_REQUEST = 1;
     public static final int CAMERA_PERMISSIONS_REQUEST = 2;
@@ -24,13 +24,11 @@ public class ImageManager
 
     Activity activity;
 
-    public ImageManager(Activity activity)
-    {
+    public ImageManager(Activity activity) {
         this.activity = activity;
     }
 
-    public void selectImage()
-    {
+    public void selectImage() {
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder
                 .setMessage(R.string.dialog_select_prompt)
@@ -70,16 +68,12 @@ public class ImageManager
         return new File(dir, FILE_NAME);
     }
 
-    public Bitmap ReadImage(int requestCode, Intent data) throws IOException
-    {
+    public Bitmap ReadImage(int requestCode, Intent data) throws IOException {
         Uri uri = null;
 
-        if (requestCode == GALLERY_IMAGE_REQUEST && data != null)
-        {
+        if (requestCode == GALLERY_IMAGE_REQUEST && data != null) {
             uri = data.getData();
-        }
-        else if (requestCode == CAMERA_IMAGE_REQUEST)
-        {
+        } else if (requestCode == CAMERA_IMAGE_REQUEST) {
             uri = Uri.fromFile(getCameraFile());
         }
         return scaleBitmapDown(MediaStore.Images.Media.getBitmap(activity.getContentResolver(), uri), 1200);
@@ -104,13 +98,13 @@ public class ImageManager
         return Bitmap.createScaledBitmap(bitmap, resizedWidth, resizedHeight, false);
     }
 
-    public int getProjectedColor(ImageView iv, Bitmap bm, int x, int y){
-        if(x<0 || y<0 || x > iv.getWidth() || y > iv.getHeight()){
+    public int getProjectedColor(ImageView iv, Bitmap bm, int x, int y) {
+        if (x < 0 || y < 0 || x > iv.getWidth() || y > iv.getHeight()) {
             //outside ImageView
             return android.R.color.background_light;
-        }else{
-            int projectedX = (int)((double)x * ((double)bm.getWidth()/(double)iv.getWidth()));
-            int projectedY = (int)((double)y * ((double)bm.getHeight()/(double)iv.getHeight()));
+        } else {
+            int projectedX = (int) ((double) x * ((double) bm.getWidth() / (double) iv.getWidth()));
+            int projectedY = (int) ((double) y * ((double) bm.getHeight() / (double) iv.getHeight()));
 
             return bm.getPixel(projectedX, projectedY);
         }
