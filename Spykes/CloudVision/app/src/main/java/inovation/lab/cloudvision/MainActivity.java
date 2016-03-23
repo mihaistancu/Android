@@ -17,8 +17,6 @@ import android.widget.Toast;
 
 import java.io.IOException;
 
-import sample.google.com.cloudvision.R;
-
 public class MainActivity extends AppCompatActivity {
 
     private ImageView mainImage;

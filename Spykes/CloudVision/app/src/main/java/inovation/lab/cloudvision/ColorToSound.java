@@ -7,8 +7,6 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.util.Log;
 
-import sample.google.com.cloudvision.R;
-
 public class ColorToSound {
     Context context;
 

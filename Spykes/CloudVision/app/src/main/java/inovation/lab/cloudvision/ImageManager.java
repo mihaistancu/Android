@@ -14,8 +14,6 @@ import android.widget.ImageView;
 import java.io.File;
 import java.io.IOException;
 
-import sample.google.com.cloudvision.R;
-
 public class ImageManager {
     public static final String FILE_NAME = "temp.jpg";
     public static final int GALLERY_IMAGE_REQUEST = 1;

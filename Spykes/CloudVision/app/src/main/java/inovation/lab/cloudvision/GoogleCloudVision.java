@@ -58,7 +58,8 @@ public class GoogleCloudVision {
                 annotateImageRequest.setFeatures(new ArrayList<Feature>() {{
                     Feature labelDetection = new Feature();
                     labelDetection.setType("LABEL_DETECTION");
-                    labelDetection.setMaxResults(10);
+                    //labelDetection.setMaxResults(10);
+                    labelDetection.setMaxResults(3);
                     add(labelDetection);
 
                     Feature faceDetection = new Feature();
@@ -94,8 +95,8 @@ public class GoogleCloudVision {
         List<EntityAnnotation> labels = response.getResponses().get(0).getLabelAnnotations();
         if (labels != null) {
             for (EntityAnnotation label : labels) {
-                message += label.getScore();
-                message += " ";
+                //message += label.getScore();
+                //message += " ";
                 message += label.getDescription();
                 message += "\n";
             }
