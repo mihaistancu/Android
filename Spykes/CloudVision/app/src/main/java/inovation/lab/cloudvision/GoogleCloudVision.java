@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GoogleCloudVision {
-    private static final String CLOUD_VISION_API_KEY = "AIzaSyBoyen2uL0vc4sf8viYAI78cjHwrgqrmWg";
+    private static final String CLOUD_VISION_API_KEY = "AIzaSyAIle9H8YMndfaE0jGICnfIUKopfDa8o3I";
     private static String TAG = "api";
 
     public String Analyze(final Bitmap bitmap) {
