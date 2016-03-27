@@ -37,11 +37,14 @@ public class Speech implements TextToSpeech.OnInitListener {
         }
     }
 
+    @Override
     public void onInit(int initStatus) {
         if (initStatus == TextToSpeech.SUCCESS) {
-            if (tts.isLanguageAvailable(Locale.US) == TextToSpeech.LANG_AVAILABLE) {
+            /*if (tts.isLanguageAvailable(Locale.US) == TextToSpeech.LANG_AVAILABLE) {
                 tts.setLanguage(Locale.US);
-            }
+            }*/
+
+            tts.setLanguage(Locale.US);
         } else if (initStatus == TextToSpeech.ERROR) {
             Toast.makeText(activity, "Sorry! Text to Speech failed...", Toast.LENGTH_LONG).show();
         }
