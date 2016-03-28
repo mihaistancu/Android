@@ -77,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             protected void onPostExecute(String result) {
+                speech.allow(true);
                 speech.speak(result);
                 imageDetails.setText(result);
             }

@@ -98,7 +98,7 @@ public class GoogleCloudVision {
                 //message += label.getScore();
                 //message += " ";
                 message += label.getDescription();
-                message += "\n";
+                message += ",\n";
             }
         } else {
             message += "nothing";
@@ -106,11 +106,12 @@ public class GoogleCloudVision {
 
         List<FaceAnnotation> faces = response.getResponses().get(0).getFaceAnnotations();
         if(faces!=null){
+            message += "\n";
             for(FaceAnnotation face: faces){
                 message += face.getJoyLikelihood();
-                message += " ";
+                message += ", ";
                 message += face.getAngerLikelihood();
-                message += " ";
+                message += ", ";
                 message += face.getSorrowLikelihood();
                 message += "\n";
             }
