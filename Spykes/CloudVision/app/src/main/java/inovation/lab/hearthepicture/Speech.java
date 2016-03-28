@@ -1,4 +1,4 @@
-package inovation.lab.cloudvision;
+package inovation.lab.hearthepicture;
 
 import android.app.Activity;
 import android.content.Intent;
