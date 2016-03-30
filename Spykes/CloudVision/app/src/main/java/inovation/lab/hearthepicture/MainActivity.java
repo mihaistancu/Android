@@ -16,10 +16,7 @@ import android.widget.Toast;
 import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
-
     private ImageView mainImage;
-    private TextView imageDetails;
-
     private GoogleCloudVision visionApi;
     private ColorToSound colorToSound;
     private ImageManager imageManager;
@@ -34,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
         colorToSound = new ColorToSound(this);
         imageManager = new ImageManager(this);
         speech = new Speech(this);
+        speech.allow(true);
 
         TextView selectImage = (TextView)findViewById(R.id.select_image);
         selectImage.setOnClickListener(new View.OnClickListener() {
@@ -43,7 +41,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        imageDetails = (TextView) findViewById(R.id.image_details);
         mainImage = (ImageView) findViewById(R.id.main_image);
     }
 
@@ -64,11 +61,13 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException exception) {
             Log.d("main", "Image picking failed because " + exception.getMessage());
             Toast.makeText(this, R.string.image_picker_error, Toast.LENGTH_LONG).show();
+            speech.speak(getString(R.string.image_picker_error));
         }
     }
 
     private void callCloudVision(final Bitmap bitmap) throws IOException {
-        imageDetails.setText(R.string.loading_message);
+        Toast.makeText(this, R.string.loading_message, Toast.LENGTH_LONG).show();
+        speech.speak(getString(R.string.loading_message));
 
         new AsyncTask<Object, Void, String>() {
             @Override
@@ -77,9 +76,8 @@ public class MainActivity extends AppCompatActivity {
             }
 
             protected void onPostExecute(String result) {
-                speech.allow(true);
                 speech.speak(result);
-                imageDetails.setText(result);
+                Toast.makeText(getApplicationContext(), result, Toast.LENGTH_LONG).show();
             }
         }.execute();
     }

@@ -58,8 +58,7 @@ public class GoogleCloudVision {
                 annotateImageRequest.setFeatures(new ArrayList<Feature>() {{
                     Feature labelDetection = new Feature();
                     labelDetection.setType("LABEL_DETECTION");
-                    //labelDetection.setMaxResults(10);
-                    labelDetection.setMaxResults(3);
+                    labelDetection.setMaxResults(10);
                     add(labelDetection);
 
                     Feature faceDetection = new Feature();
@@ -90,30 +89,59 @@ public class GoogleCloudVision {
     }
 
     private String convertResponseToString(BatchAnnotateImagesResponse response) {
-        String message = "The image contains:\n";
+        String message = "";
 
         List<EntityAnnotation> labels = response.getResponses().get(0).getLabelAnnotations();
+        List<FaceAnnotation> faces = response.getResponses().get(0).getFaceAnnotations();
+
         if (labels != null) {
             for (EntityAnnotation label : labels) {
-                //message += label.getScore();
-                //message += " ";
-                message += label.getDescription();
-                message += ",\n";
+                if (label.getScore() > 0.8) {
+                    message += label.getDescription();
+                    message += ", ";
+                }
+            }
+
+            if (message.length() > 0) {
+                message = "The image contains:\n" + message.trim();
+
+                if (message.charAt(message.length() - 1) == ',') {
+                    message = message.substring(0, message.length() - 1) + ".";
+                }
             }
         } else {
-            message += "nothing";
+            message += "Sorry, nothing clear found.";
         }
 
-        List<FaceAnnotation> faces = response.getResponses().get(0).getFaceAnnotations();
-        if(faces!=null){
-            message += "\n";
-            for(FaceAnnotation face: faces){
-                message += face.getJoyLikelihood();
-                message += ", ";
-                message += face.getAngerLikelihood();
-                message += ", ";
-                message += face.getSorrowLikelihood();
-                message += "\n";
+
+        if (faces != null) {
+            String feelingsMessage = "";
+
+            for (FaceAnnotation face : faces) {
+                if (face.getJoyLikelihood().startsWith("VERY_LIKELY")) {
+                    feelingsMessage += "joy, ";
+                }
+
+                if (face.getAngerLikelihood().startsWith("VERY_LIKELY")) {
+                    feelingsMessage += "anger, ";
+                }
+
+                if (face.getSorrowLikelihood().startsWith("VERY_LIKELY")) {
+                    feelingsMessage += "sorrow, ";
+                }
+
+                if (face.getSurpriseLikelihood().startsWith("VERY_LIKELY")) {
+                    feelingsMessage += "surprise, ";
+                }
+            }
+
+            if (feelingsMessage.length() > 0) {
+                feelingsMessage = "\nThe feelings found are: " + feelingsMessage.trim();
+                message += feelingsMessage;
+
+                if (message.charAt(message.length() - 1) == ',') {
+                    message = message.substring(0, message.length() - 1) + ".";
+                }
             }
         }
 
