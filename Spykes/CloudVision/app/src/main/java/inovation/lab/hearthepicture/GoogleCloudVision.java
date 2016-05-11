@@ -96,10 +96,10 @@ public class GoogleCloudVision {
 
         if (labels != null) {
             for (EntityAnnotation label : labels) {
-                if (label.getScore() > 0.8) {
+                //if (label.getScore() > 0.8) {
                     message += label.getDescription();
                     message += ", ";
-                }
+                //}
             }
 
             if (message.length() > 0) {

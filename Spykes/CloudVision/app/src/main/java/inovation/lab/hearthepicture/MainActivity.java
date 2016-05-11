@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -17,10 +18,10 @@ import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
     private ImageView mainImage;
+    private TextView imageDetails;
     private GoogleCloudVision visionApi;
     private ColorToSound colorToSound;
     private ImageManager imageManager;
-    private Speech speech;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,28 +31,29 @@ public class MainActivity extends AppCompatActivity {
         visionApi = new GoogleCloudVision();
         colorToSound = new ColorToSound(this);
         imageManager = new ImageManager(this);
-        speech = new Speech(this);
-        speech.allow(true);
 
-        TextView selectImage = (TextView)findViewById(R.id.select_image);
-        selectImage.setOnClickListener(new View.OnClickListener() {
+        Button selectGallery = (Button)findViewById(R.id.gallery_button);
+        Button selectCamera = (Button)findViewById(R.id.camera_button);
+        selectGallery.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                imageManager.selectImage();
+                imageManager.startGalleryChooser();
+            }
+        });
+        selectCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                imageManager.startCamera();
             }
         });
 
         mainImage = (ImageView) findViewById(R.id.main_image);
+        imageDetails = (TextView) findViewById(R.id.image_details);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == speech.CHECK_CODE) {
-            speech.initialize(resultCode);
-            return;
-        }
 
         if (resultCode != RESULT_OK) return;
 
@@ -61,13 +63,12 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException exception) {
             Log.d("main", "Image picking failed because " + exception.getMessage());
             Toast.makeText(this, R.string.image_picker_error, Toast.LENGTH_LONG).show();
-            speech.speak(getString(R.string.image_picker_error));
         }
     }
 
     private void callCloudVision(final Bitmap bitmap) throws IOException {
+        imageDetails.setText(R.string.loading_message);
         Toast.makeText(this, R.string.loading_message, Toast.LENGTH_LONG).show();
-        speech.speak(getString(R.string.loading_message));
 
         new AsyncTask<Object, Void, String>() {
             @Override
@@ -76,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             protected void onPostExecute(String result) {
-                speech.speak(result);
+                imageDetails.setText(result);
                 Toast.makeText(getApplicationContext(), result, Toast.LENGTH_LONG).show();
             }
         }.execute();
@@ -118,6 +119,5 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        speech.shutDown();
     }
 }
