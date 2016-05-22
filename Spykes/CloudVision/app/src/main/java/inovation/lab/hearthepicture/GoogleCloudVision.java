@@ -24,10 +24,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GoogleCloudVision {
-    private static final String CLOUD_VISION_API_KEY = "AIzaSyAIle9H8YMndfaE0jGICnfIUKopfDa8o3I";
+    private static final String CLOUD_VISION_API_KEY = "AIzaSyDdxFNE6e7gWEZuzu2XEMlnHRmmy7shl1I";
+
     private static String TAG = "api";
 
-    public String Analyze(final Bitmap bitmap) {
+    public ResultMessage Analyze(final Bitmap bitmap) {
         try {
             HttpTransport httpTransport = AndroidHttp.newCompatibleTransport();
             JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
@@ -58,12 +59,17 @@ public class GoogleCloudVision {
                 annotateImageRequest.setFeatures(new ArrayList<Feature>() {{
                     Feature labelDetection = new Feature();
                     labelDetection.setType("LABEL_DETECTION");
-                    labelDetection.setMaxResults(10);
+                    labelDetection.setMaxResults(3);
                     add(labelDetection);
 
                     Feature faceDetection = new Feature();
                     faceDetection.setType("FACE_DETECTION");
                     add(faceDetection);
+
+                    Feature textDetection = new Feature();
+                    textDetection.setType("TEXT_DETECTION");
+                    textDetection.setMaxResults(1);
+                    add(textDetection);
                 }});
 
                 // Add the list of one thing to the request
@@ -85,21 +91,26 @@ public class GoogleCloudVision {
             Log.d(TAG, "failed to make API request because of other IOException " +
                     e.getMessage());
         }
-        return "Cloud Vision API request failed. Check logs for details.";
+
+        return null;
+        //return "Cloud Vision API request failed. Check logs for details.";
     }
 
-    private String convertResponseToString(BatchAnnotateImagesResponse response) {
-        String message = "";
+    private ResultMessage convertResponseToString(BatchAnnotateImagesResponse response) {
+        ResultMessage messages = new ResultMessage();
 
         List<EntityAnnotation> labels = response.getResponses().get(0).getLabelAnnotations();
         List<FaceAnnotation> faces = response.getResponses().get(0).getFaceAnnotations();
+        List<EntityAnnotation> text = response.getResponses().get(0).getTextAnnotations();
 
         if (labels != null) {
+            String message = "";
+
             for (EntityAnnotation label : labels) {
-                //if (label.getScore() > 0.8) {
+                if (label.getScore() > 0.5) {
                     message += label.getDescription();
                     message += ", ";
-                //}
+                }
             }
 
             if (message.length() > 0) {
@@ -109,42 +120,52 @@ public class GoogleCloudVision {
                     message = message.substring(0, message.length() - 1) + ".";
                 }
             }
-        } else {
-            message += "Sorry, nothing clear found.";
+
+            messages.setLabels(message);
         }
 
-
         if (faces != null) {
-            String feelingsMessage = "";
+            String message = "";
 
             for (FaceAnnotation face : faces) {
                 if (face.getJoyLikelihood().startsWith("VERY_LIKELY")) {
-                    feelingsMessage += "joy, ";
+                    message += "joy, ";
                 }
 
                 if (face.getAngerLikelihood().startsWith("VERY_LIKELY")) {
-                    feelingsMessage += "anger, ";
+                    message += "anger, ";
                 }
 
                 if (face.getSorrowLikelihood().startsWith("VERY_LIKELY")) {
-                    feelingsMessage += "sorrow, ";
+                    message += "sorrow, ";
                 }
 
                 if (face.getSurpriseLikelihood().startsWith("VERY_LIKELY")) {
-                    feelingsMessage += "surprise, ";
+                    message += "surprise, ";
                 }
             }
 
-            if (feelingsMessage.length() > 0) {
-                feelingsMessage = "\nThe feelings found are: " + feelingsMessage.trim();
-                message += feelingsMessage;
+            if (message.length() > 0) {
+                message = "The feelings found are: " + message.trim();
 
                 if (message.charAt(message.length() - 1) == ',') {
                     message = message.substring(0, message.length() - 1) + ".";
                 }
+
+                messages.setFeelings(message);
             }
         }
 
-        return message;
+        if (text != null) {
+            String message = "";
+
+            for (EntityAnnotation txt : text) {
+                message += txt.getDescription();
+            }
+
+            messages.setText(message);
+        }
+
+        return messages;
     }
 }

@@ -18,10 +18,12 @@ import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
     private ImageView mainImage;
-    private TextView imageDetails;
+    private ResultMessage imageDetails;
     private GoogleCloudVision visionApi;
     private ColorToSound colorToSound;
     private ImageManager imageManager;
+    private Button repeatBtn;
+    private Button textBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,23 +34,45 @@ public class MainActivity extends AppCompatActivity {
         colorToSound = new ColorToSound(this);
         imageManager = new ImageManager(this);
 
-        Button selectGallery = (Button)findViewById(R.id.gallery_button);
-        Button selectCamera = (Button)findViewById(R.id.camera_button);
-        selectGallery.setOnClickListener(new View.OnClickListener() {
+        Button galleryBtn = (Button) findViewById(R.id.gallery_button);
+        Button cameraBtn = (Button) findViewById(R.id.camera_button);
+        repeatBtn = (Button) findViewById(R.id.repeat_button);
+        textBtn = (Button) findViewById(R.id.text_button);
+
+        repeatBtn.setVisibility(View.INVISIBLE);
+        textBtn.setVisibility(View.INVISIBLE);
+
+        galleryBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 imageManager.startGalleryChooser();
             }
         });
-        selectCamera.setOnClickListener(new View.OnClickListener() {
+
+        cameraBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 imageManager.startCamera();
             }
         });
 
+        repeatBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getApplicationContext(),
+                        imageDetails.getLabels() + "\n\n" + imageDetails.getFeelings(),
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+
+        textBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getApplicationContext(), imageDetails.getText(), Toast.LENGTH_LONG).show();
+            }
+        });
+
         mainImage = (ImageView) findViewById(R.id.main_image);
-        imageDetails = (TextView) findViewById(R.id.image_details);
     }
 
     @Override
@@ -67,18 +91,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void callCloudVision(final Bitmap bitmap) throws IOException {
-        imageDetails.setText(R.string.loading_message);
         Toast.makeText(this, R.string.loading_message, Toast.LENGTH_LONG).show();
 
-        new AsyncTask<Object, Void, String>() {
+        new AsyncTask<Object, Void, ResultMessage>() {
             @Override
-            protected String doInBackground(Object... params) {
+            protected ResultMessage doInBackground(Object... params) {
                 return visionApi.Analyze(bitmap);
             }
 
-            protected void onPostExecute(String result) {
-                imageDetails.setText(result);
-                Toast.makeText(getApplicationContext(), result, Toast.LENGTH_LONG).show();
+            protected void onPostExecute(ResultMessage result) {
+                imageDetails = result;
+
+                if(imageDetails != null) {
+                    Toast.makeText(getApplicationContext(),
+                            imageDetails.getLabels() + "\n\n" + imageDetails.getFeelings(),
+                            Toast.LENGTH_LONG).show();
+
+                    repeatBtn.setVisibility(View.VISIBLE);
+                    textBtn.setVisibility(View.VISIBLE);
+                }else{
+                    Toast.makeText(getApplicationContext(),
+                            "Cloud Vision API request failed. Check logs for details.",
+                            Toast.LENGTH_LONG).show();
+                }
             }
         }.execute();
     }
