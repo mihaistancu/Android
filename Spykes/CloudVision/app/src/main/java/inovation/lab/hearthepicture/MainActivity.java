@@ -60,7 +60,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Toast.makeText(getApplicationContext(),
-                        imageDetails.getLabels() + "\n\n" + imageDetails.getFeelings(),
+                            imageDetails.getLabels() + "\n" +
+                            imageDetails.getFeelings()+ "\n" +
+                            imageDetails.getLogo(),
                         Toast.LENGTH_LONG).show();
             }
         });
@@ -104,7 +106,9 @@ public class MainActivity extends AppCompatActivity {
 
                 if(imageDetails != null) {
                     Toast.makeText(getApplicationContext(),
-                            imageDetails.getLabels() + "\n\n" + imageDetails.getFeelings(),
+                                imageDetails.getLabels() + "\n" +
+                                imageDetails.getFeelings()+ "\n" +
+                                imageDetails.getLogo(),
                             Toast.LENGTH_LONG).show();
 
                     repeatBtn.setVisibility(View.VISIBLE);
