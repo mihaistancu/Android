@@ -59,11 +59,7 @@ public class MainActivity extends AppCompatActivity {
         repeatBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getApplicationContext(),
-                            imageDetails.getLabels() + "\n" +
-                            imageDetails.getFeelings()+ "\n" +
-                            imageDetails.getLogo(),
-                        Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), imageDetails.GetMessageWithoutText(), Toast.LENGTH_LONG).show();
             }
         });
 
@@ -84,6 +80,9 @@ public class MainActivity extends AppCompatActivity {
         if (resultCode != RESULT_OK) return;
 
         try {
+            repeatBtn.setVisibility(View.INVISIBLE);
+            textBtn.setVisibility(View.INVISIBLE);
+
             Bitmap bitmap = imageManager.ReadImage(requestCode, data);
             analyze(bitmap);
         } catch (IOException exception) {
@@ -105,11 +104,7 @@ public class MainActivity extends AppCompatActivity {
                 imageDetails = result;
 
                 if(imageDetails != null) {
-                    Toast.makeText(getApplicationContext(),
-                                imageDetails.getLabels() + "\n" +
-                                imageDetails.getFeelings()+ "\n" +
-                                imageDetails.getLogo(),
-                            Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), imageDetails.GetMessageWithoutText(), Toast.LENGTH_LONG).show();
 
                     repeatBtn.setVisibility(View.VISIBLE);
                     textBtn.setVisibility(View.VISIBLE);

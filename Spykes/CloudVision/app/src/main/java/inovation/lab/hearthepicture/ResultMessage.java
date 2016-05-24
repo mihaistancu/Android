@@ -5,37 +5,50 @@ public class ResultMessage {
     private String feelings;
     private String text;
     private String logo;
+    private String landmarks;
 
-    public String getLogo() {
-        if (this.logo == null || this.logo == "") {
-            return "No logo found!";
+    private String getLandmarks() {
+        if (this.landmarks == null || this.landmarks == "") {
+            return "";
         }
 
-        return "Logo: " + RemoveLastComma(logo);
+        return RemoveLastComma(landmarks);
+    }
+
+    public void setLandmarks(String landmarks) {
+        this.landmarks = landmarks;
+    }
+
+    private String getLogo() {
+        if (this.logo == null || this.logo == "") {
+            return "";
+        }
+
+        return RemoveLastComma(logo);
     }
 
     public void setLogo(String logo) {
         this.logo = logo;
     }
 
-    public String getLabels() {
+    private String getLabels() {
         if (this.labels == null || this.labels == "") {
-            return "No label found!";
+            return "";
         }
 
-        return "Labels: " + RemoveLastComma(labels);
+        return RemoveLastComma(labels);
     }
 
     public void setLabels(String labels) {
         this.labels = labels;
     }
 
-    public String getFeelings() {
+    private String getFeelings() {
         if (this.feelings == null || this.feelings == "") {
-            return "No feelings found!";
+            return "";
         }
 
-        return "Feelings: " + RemoveLastComma(feelings);
+        return RemoveLastComma(feelings);
     }
 
     public void setFeelings(String feelings) {
@@ -59,6 +72,38 @@ public class ResultMessage {
 
         if (message.length() > 0 && message.charAt(message.length() - 1) == ',') {
             message = message.substring(0, message.length() - 1);
+        }
+
+        return message;
+    }
+
+    public String GetMessageWithoutText() {
+        String message = "";
+        String feelings = this.getFeelings();
+        String logos = this.getLogo();
+        String landmarks = this.getLandmarks();
+        String labels = this.getLabels();
+
+        if (landmarks != "") {
+            message = landmarks + ".";
+
+            if (labels != "") {
+                message += "\n\nLabels: " + labels.replace("landmark,", "") + ".";
+            }
+        } else if (labels != "") {
+            message = labels + ".";
+        }
+
+        if (feelings != "") {
+            message += "\n\nFeelings: " + feelings + ".";
+        }
+
+        if (logos != "") {
+            message += "\n\nLogo: " + logos + ".";
+        }
+
+        if(message == ""){
+            message = "Sorry! Nothing relevant found! Please try again!";
         }
 
         return message;

@@ -59,7 +59,7 @@ public class GoogleCloudVision {
                 annotateImageRequest.setFeatures(new ArrayList<Feature>() {{
                     Feature labelDetection = new Feature();
                     labelDetection.setType("LABEL_DETECTION");
-                    labelDetection.setMaxResults(3);
+                    labelDetection.setMaxResults(5);
                     add(labelDetection);
 
                     Feature faceDetection = new Feature();
@@ -68,8 +68,17 @@ public class GoogleCloudVision {
 
                     Feature textDetection = new Feature();
                     textDetection.setType("TEXT_DETECTION");
-                    textDetection.setMaxResults(1);
                     add(textDetection);
+
+                    Feature logoDetection = new Feature();
+                    logoDetection.setType("LOGO_DETECTION");
+                    logoDetection.setMaxResults(5);
+                    add(logoDetection);
+
+                    Feature landmarkDetection = new Feature();
+                    landmarkDetection.setType("LANDMARK_DETECTION");
+                    landmarkDetection.setMaxResults(5);
+                    add(landmarkDetection);
                 }});
 
                 // Add the list of one thing to the request
@@ -102,26 +111,23 @@ public class GoogleCloudVision {
         List<EntityAnnotation> labels = response.getResponses().get(0).getLabelAnnotations();
         List<FaceAnnotation> faces = response.getResponses().get(0).getFaceAnnotations();
         List<EntityAnnotation> text = response.getResponses().get(0).getTextAnnotations();
+        List<EntityAnnotation> logos = response.getResponses().get(0).getLogoAnnotations();
+        List<EntityAnnotation> landmarks = response.getResponses().get(0).getLandmarkAnnotations();
 
         if (labels != null) {
-            String message = "";
+            messages.setLabels(GetAnnotationsDescription(labels, 0.5f));
+        }
 
-            for (EntityAnnotation label : labels) {
-                if (label.getScore() > 0.5) {
-                    message += label.getDescription();
-                    message += ", ";
-                }
-            }
+        if (text != null) {
+            messages.setText(GetAnnotationsDescription(text, null));
+        }
 
-            if (message.length() > 0) {
-                message = "The image contains:\n" + message.trim();
+        if (logos != null) {
+            messages.setLogo(GetAnnotationsDescription(logos, 0.1f));
+        }
 
-                if (message.charAt(message.length() - 1) == ',') {
-                    message = message.substring(0, message.length() - 1) + ".";
-                }
-            }
-
-            messages.setLabels(message);
+        if (landmarks != null) {
+            messages.setLandmarks(GetAnnotationsDescription(landmarks, 0.1f));
         }
 
         if (faces != null) {
@@ -145,27 +151,30 @@ public class GoogleCloudVision {
                 }
             }
 
-            if (message.length() > 0) {
-                message = "The feelings found are: " + message.trim();
-
-                if (message.charAt(message.length() - 1) == ',') {
-                    message = message.substring(0, message.length() - 1) + ".";
-                }
-
-                messages.setFeelings(message);
-            }
-        }
-
-        if (text != null) {
-            String message = "";
-
-            for (EntityAnnotation txt : text) {
-                message += txt.getDescription();
-            }
-
-            messages.setText(message);
+            messages.setFeelings(message);
         }
 
         return messages;
+    }
+
+    private String GetAnnotationsDescription(List<EntityAnnotation> annotations, Float minScore) {
+        String message = "";
+
+        for (EntityAnnotation item : annotations) {
+            Float score = item.getScore();
+            Float confidence = item.getConfidence();
+
+            // daca nu are scor inseamna ca e de tip text, si vrem sa returneze doar primul rezultat de acest fel
+            if (score == null || minScore == null) {
+                message += item.getDescription();
+                message += ", ";
+                break;
+            } else if (score >= minScore) {
+                message += item.getDescription();
+                message += ", ";
+            }
+        }
+
+        return message;
     }
 }
